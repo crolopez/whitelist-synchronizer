@@ -1,0 +1,4 @@
+name: WhitelistSynchronizer
+version: 1.0
+author: Cristobal Lopez
+main: crolopez.WhitelistSynchronizer.WhitelistSynchronizer
