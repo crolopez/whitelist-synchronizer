@@ -1,0 +1,8 @@
+#Sync period in seconds
+sync-period: 5
+
+# Remote server address
+server-address: 'http://localhost'
+
+# Remote server port
+server-port: 8080
