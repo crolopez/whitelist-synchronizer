@@ -1,8 +1,10 @@
 package crolopez.WhitelistSynchronizer.sync;
 
+import com.google.gson.JsonSyntaxException;
 import crolopez.WhitelistSynchronizer.config.ConfigMain;
+import crolopez.WhitelistSynchronizer.helper.LogHandler;
+import crolopez.WhitelistSynchronizer.helper.WhitelistHandler;
 import org.bukkit.scheduler.BukkitRunnable;
-import static org.bukkit.Bukkit.getLogger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,40 +19,52 @@ public class Synchronizer extends BukkitRunnable {
     @Override
     public void run() {
         try {
-            requestWhitelist();
-        } catch (IOException e) {
-            e.printStackTrace();
+            String whitelist = requestWhitelist();
+            if (whitelist == null) {
+                return;
+            }
+
+            WhitelistHandler.setWhitelist(whitelist);
+        } catch (IOException | JsonSyntaxException e) {
+            LogHandler.warn("Could not synchronize the whitelist.");
+            LogHandler.warn(e.getMessage());
         }
     }
 
-    private void requestWhitelist() throws IOException {
+    private String requestWhitelist() throws IOException {
         final String address = ConfigMain.getServerAddress();
-
-        getLogger().info("Connecting to " + address + ".");
-        // URL obj = new URL("HTTP", address, port, "output");
         URL obj = new URL(address);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", USER_AGENT);
+        LogHandler.info("Fetching the server whitelist from " + address + ".");
 
-        int responseCode = con.getResponseCode();
-        getLogger().info("GET Response Code :: " + responseCode);
+        HttpURLConnection httpConnection = (HttpURLConnection) obj.openConnection();
+        httpConnection.setRequestMethod("GET");
+        httpConnection.setRequestProperty("User-Agent", USER_AGENT);
 
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getInputStream()));
+        int responseCode = httpConnection.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            LogHandler.warn("The server replied and invalid status code: " + responseCode);
+            return null;
+        }
+
+        return getServerResponse(httpConnection);
+    }
+
+    private String getServerResponse(HttpURLConnection httpConnection) throws IOException {
+        InputStreamReader inputReader = new InputStreamReader(httpConnection.getInputStream());
+        BufferedReader bufferedReader = new BufferedReader(inputReader);
+
+        try {
             String inputLine;
             StringBuffer response = new StringBuffer();
 
-            while ((inputLine = in.readLine()) != null) {
+            while ((inputLine = bufferedReader.readLine()) != null) {
                 response.append(inputLine);
             }
-            in.close();
 
-            getLogger().info(response.toString());
-        } else {
-            getLogger().info("GET request not worked");
+            return response.toString();
+        } finally {
+            bufferedReader.close();
         }
     }
 }
