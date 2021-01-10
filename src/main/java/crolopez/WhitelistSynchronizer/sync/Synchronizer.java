@@ -15,15 +15,17 @@ import java.net.URL;
 
 public class Synchronizer extends BukkitRunnable {
     private final String USER_AGENT = "WhitelistSynchronizer";
+    private String CACHED_WHITELIST = "";
 
     @Override
     public void run() {
         try {
             String whitelist = requestWhitelist();
-            if (whitelist == null) {
+            if (whitelist == null || CACHED_WHITELIST.equals(whitelist)) {
                 return;
             }
 
+            CACHED_WHITELIST = whitelist;
             WhitelistHandler.setWhitelist(whitelist);
         } catch (IOException | JsonSyntaxException e) {
             LogHandler.warn("Could not synchronize the whitelist.");
