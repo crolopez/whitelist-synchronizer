@@ -2,10 +2,9 @@ package crolopez.WhitelistSynchronizer.helper;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +16,19 @@ class WhitelistEntry {
 
     @Override
     public String toString(){
-        return  "\n" +
-                "{\n" +
+        return  "{\n" +
                 "    \"uuid\": \"" + uuid + "\",\n" +
                 "    \"name\": \"" + name + "\"\n" +
                 "}";
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof WhitelistEntry){
+            WhitelistEntry toCompare = (WhitelistEntry) o;
+            return this.name.equals(toCompare.name) && this.uuid.equals(toCompare.uuid);
+        }
+        return false;
     }
 }
 
@@ -75,7 +82,7 @@ public class WhitelistHandler {
         if (removedEntries.size() > 0) {
             String removedMsg = "Removed users:";
             for (WhitelistEntry entry: removedEntries) {
-                removedMsg += "\n - " + entry.name;
+                removedMsg += "\n - " + entry.name + " (" + entry.uuid + ")";
             }
             LogHandler.info(removedMsg);
         }
@@ -83,7 +90,7 @@ public class WhitelistHandler {
         if (addedEntries.size() > 0) {
             String addedMsg = "Added users:";
             for (WhitelistEntry entry: addedEntries) {
-                addedMsg += "\n - " + entry.name;
+                addedMsg += "\n - " + entry.name + " (" + entry.uuid + ")";
             }
             LogHandler.info(addedMsg);
         }
@@ -91,8 +98,16 @@ public class WhitelistHandler {
         return true;
     }
 
-    // TODO
-    private static void replaceWhitelist(List<WhitelistEntry> whitelist) {
+    private static void replaceWhitelist(List<WhitelistEntry> whitelist) throws IOException {
+        FileWriter writer = new FileWriter(FILENAME);
+        try {
+            writer.write(whitelist.toString());
+        } finally {
+            writer.close();
+        }
+
+        LogHandler.info("Reloading the whitelist.");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "whitelist reload");
     }
 
     private static List<WhitelistEntry> whitelistEntriesToList(String whitelistAsString) {
