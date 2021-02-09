@@ -2,6 +2,7 @@ package crolopez.WhitelistSynchronizer.helper;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import crolopez.WhitelistSynchronizer.config.ConfigMain;
 import org.bukkit.Bukkit;
 
 import java.io.*;
@@ -45,7 +46,7 @@ public class WhitelistHandler {
 
         List<WhitelistEntry> existingWhitelist = getExistingWhitelist();
         if (!isADifferentWhitelist(whitelist, existingWhitelist)) {
-            LogHandler.info("The pushed whitelist is identical to the existing one.");
+            LogHandler.info("The fetched whitelist is identical to the existing one.");
             return;
         }
 
@@ -79,23 +80,72 @@ public class WhitelistHandler {
             return false;
         }
 
-        if (removedEntries.size() > 0) {
-            String removedMsg = "Removed users:";
-            for (WhitelistEntry entry: removedEntries) {
-                removedMsg += "\n - " + entry.name + " (" + entry.uuid + ")";
-            }
-            LogHandler.info(removedMsg);
-        }
+        sendConsoleMessage(removedEntries, addedEntries);
 
-        if (addedEntries.size() > 0) {
-            String addedMsg = "Added users:";
-            for (WhitelistEntry entry: addedEntries) {
-                addedMsg += "\n - " + entry.name + " (" + entry.uuid + ")";
-            }
-            LogHandler.info(addedMsg);
+        if ((removedEntries.size() > 0 && ConfigMain.getBroadcastRemovedEntries()) ||
+            (addedEntries.size() > 0 && ConfigMain.getBroadcastAddedEntries())) {
+            sendWorldMessage(removedEntries, addedEntries);
         }
 
         return true;
+    }
+
+    private static void sendWorldMessage(List<WhitelistEntry> removedEntries, List<WhitelistEntry> addedEntries) {
+        //String worldMessageFormat = "/tellraw @a [\"\",{\"text\":\"The whitelist has been synchronized with the following changes:\",\"bold\":true,\"color\":\"yellow\"},{\"text\":\"\\n\"},{\"text\":\"+ Manuel\",\"color\":\"green\"},{\"text\":\"\\n\"},{\"text\":\"- Federico\",\"color\":\"red\"}]";
+        String worldMessageHeader = "The whitelist has been synchronized with the following changes:";
+        String worldMessageFormat = "tellraw @a [\"\"," +
+                "{\"text\":\"%s\",\"bold\":true,\"color\":\"yellow\"}," +
+                "{\"text\":\"%s\",\"color\":\"green\"}," +
+                "{\"text\":\"%s\",\"color\":\"red\"}]";
+        String removed = "";
+        String added = "";
+
+        if (removedEntries.size() > 0 && ConfigMain.getBroadcastRemovedEntries()) {
+            removed += collectEntryChangesForWorldMessage(removedEntries, true).replaceAll("\n", "\\\\n");
+        }
+
+        if (addedEntries.size() > 0 && ConfigMain.getBroadcastAddedEntries()) {
+            added += collectEntryChangesForWorldMessage(addedEntries, false).replaceAll("\n", "\\\\n");
+        }
+
+        String finalCommand = worldMessageFormat.formatted(worldMessageHeader, added, removed);
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
+    }
+
+    private static void sendConsoleMessage(List<WhitelistEntry> removedEntries, List<WhitelistEntry> addedEntries) {
+        String consoleMessage = "";
+
+        if (removedEntries.size() > 0) {
+            consoleMessage += collectEntryChangesForConsoleMessage(removedEntries, true);
+        }
+
+        if (addedEntries.size() > 0) {
+            consoleMessage += collectEntryChangesForConsoleMessage(addedEntries, false);
+        }
+
+        LogHandler.info(consoleMessage);
+    }
+
+    private static String collectEntryChangesForConsoleMessage(List<WhitelistEntry> entries, boolean removedMessage) {
+        String entryChanges = removedMessage ? "\nRemoved users:" : "\nAdded users:";
+        String rowPrefix = removedMessage ? "-" : "+";
+
+        for (WhitelistEntry entry: entries) {
+            entryChanges += "\n%s %s (%s)".formatted(rowPrefix, entry.name, entry.uuid);
+        }
+
+        return entryChanges;
+    }
+
+    private static String collectEntryChangesForWorldMessage(List<WhitelistEntry> entries, boolean removedMessage) {
+        String entryChanges = "";
+        String rowPrefix = removedMessage ? "-" : "+";
+
+        for (WhitelistEntry entry: entries) {
+            entryChanges += "\n%s %s".formatted(rowPrefix, entry.name);
+        }
+
+        return entryChanges;
     }
 
     private static void replaceWhitelist(List<WhitelistEntry> whitelist) throws IOException {

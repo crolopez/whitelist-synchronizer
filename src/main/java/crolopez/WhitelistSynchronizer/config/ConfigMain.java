@@ -7,11 +7,15 @@ public final class ConfigMain extends Config {
     private static ConfigMain _instance = new ConfigMain();
     private static int syncPeriod;
     private static String serverAddress;
+    private static boolean broadcastAddedEntries;
+    private static boolean broadcastRemovedEntries;
 
     @Override
     public void load(boolean firstCreate) {
         syncPeriod = getConfig().getInt("sync-period", 5);
         serverAddress = getConfig().getString("server-address", "http://localhost");
+        broadcastAddedEntries = getConfig().getBoolean("broadcast-added-entries", false);
+        broadcastRemovedEntries = getConfig().getBoolean("broadcast-added-entries", false);
     }
 
     @Override
@@ -28,6 +32,14 @@ public final class ConfigMain extends Config {
 
     public static String getServerAddress() {
         return serverAddress;
+    }
+
+    public static boolean getBroadcastAddedEntries() {
+        return broadcastAddedEntries;
+    }
+
+    public static boolean getBroadcastRemovedEntries() {
+        return broadcastRemovedEntries;
     }
 
     public static ConfigMain instance()

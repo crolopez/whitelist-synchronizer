@@ -15,10 +15,16 @@ period.
 
 ``` YAML
 #Sync period in seconds
-sync-period: 5
+sync-period: 120
 
 # Remote server address
 server-address: 'http://localhost'
+
+# Notifies all server members that someone has been added to the whitelist
+broadcast-added-entries: false
+
+# Notifies all server members that someone has been removed from the whitelist
+broadcast-removed-entries: false
 ```
 
 Expected server response
