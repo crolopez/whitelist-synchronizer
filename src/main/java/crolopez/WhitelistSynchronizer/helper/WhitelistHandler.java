@@ -108,7 +108,7 @@ public class WhitelistHandler {
             added += collectEntryChangesForWorldMessage(addedEntries, false).replaceAll("\n", "\\\\n");
         }
 
-        String finalCommand = worldMessageFormat.formatted(worldMessageHeader, added, removed);
+        String finalCommand = String.format(worldMessageFormat, worldMessageHeader, added, removed);
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
     }
 
@@ -131,7 +131,7 @@ public class WhitelistHandler {
         String rowPrefix = removedMessage ? "-" : "+";
 
         for (WhitelistEntry entry: entries) {
-            entryChanges += "\n%s %s (%s)".formatted(rowPrefix, entry.name, entry.uuid);
+            entryChanges += String.format("\n%s %s (%s)", rowPrefix, entry.name, entry.uuid);
         }
 
         return entryChanges;
@@ -142,7 +142,7 @@ public class WhitelistHandler {
         String rowPrefix = removedMessage ? "-" : "+";
 
         for (WhitelistEntry entry: entries) {
-            entryChanges += "\n%s %s".formatted(rowPrefix, entry.name);
+            entryChanges += String.format("\n%s %s", rowPrefix, entry.name);
         }
 
         return entryChanges;
