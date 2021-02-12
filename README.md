@@ -25,6 +25,9 @@ broadcast-added-entries: false
 
 # Notifies all server members that someone has been removed from the whitelist
 broadcast-removed-entries: false
+
+# Server response timeout in seconds (Do not touch unless you know what you are doing)
+server-reply-timeout: 5
 ```
 
 Expected server response

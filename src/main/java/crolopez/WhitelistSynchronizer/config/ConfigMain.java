@@ -9,13 +9,15 @@ public final class ConfigMain extends Config {
     private static String serverAddress;
     private static boolean broadcastAddedEntries;
     private static boolean broadcastRemovedEntries;
+    private static int serverReplyTimeout;
 
     @Override
     public void load(boolean firstCreate) {
         syncPeriod = getConfig().getInt("sync-period", 5);
         serverAddress = getConfig().getString("server-address", "http://localhost");
         broadcastAddedEntries = getConfig().getBoolean("broadcast-added-entries", false);
-        broadcastRemovedEntries = getConfig().getBoolean("broadcast-added-entries", false);
+        broadcastRemovedEntries = getConfig().getBoolean("broadcast-removed-entries", false);
+        serverReplyTimeout = getConfig().getInt("server-reply-timeout", 5);
     }
 
     @Override
@@ -40,6 +42,10 @@ public final class ConfigMain extends Config {
 
     public static boolean getBroadcastRemovedEntries() {
         return broadcastRemovedEntries;
+    }
+
+    public static int getServerReplyTimeout() {
+        return serverReplyTimeout;
     }
 
     public static ConfigMain instance()

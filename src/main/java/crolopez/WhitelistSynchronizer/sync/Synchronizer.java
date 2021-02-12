@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 
@@ -28,8 +29,7 @@ public class Synchronizer extends BukkitRunnable {
             CACHED_WHITELIST = whitelist;
             WhitelistHandler.setWhitelist(whitelist);
         } catch (IOException | JsonSyntaxException e) {
-            LogHandler.warn("Could not synchronize the whitelist.");
-            LogHandler.warn(e.getMessage());
+            LogHandler.warn("Could not synchronize the whitelist. Error: " + e.getMessage());
         }
     }
 
@@ -39,9 +39,12 @@ public class Synchronizer extends BukkitRunnable {
 
         LogHandler.info("Fetching the server whitelist from " + address + ".");
 
+        int timeout = ConfigMain.getServerReplyTimeout();
         HttpURLConnection httpConnection = (HttpURLConnection) obj.openConnection();
         httpConnection.setRequestMethod("GET");
         httpConnection.setRequestProperty("User-Agent", USER_AGENT);
+        httpConnection.setReadTimeout(timeout);
+        httpConnection.setConnectTimeout(timeout);
 
         int responseCode = httpConnection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
