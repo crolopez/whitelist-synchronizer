@@ -39,7 +39,7 @@ public class Synchronizer extends BukkitRunnable {
 
         LogHandler.info("Fetching the server whitelist from " + address + ".");
 
-        int timeout = ConfigMain.getServerReplyTimeout();
+        int timeout = ConfigMain.getServerReplyTimeout() * 1000;
         HttpURLConnection httpConnection = (HttpURLConnection) obj.openConnection();
         httpConnection.setRequestMethod("GET");
         httpConnection.setRequestProperty("User-Agent", USER_AGENT);
